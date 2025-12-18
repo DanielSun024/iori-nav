@@ -43,9 +43,10 @@ export async function onRequestPut(context) {
     }
 
     sort_order = normalizeSortOrder(sort_order);
+    const parentId = body.parent_id !== undefined ? parseInt(body.parent_id, 10) : 0;
 
-    await env.NAV_DB.prepare('UPDATE category SET catelog = ?, sort_order = ? WHERE id = ?')
-      .bind(catelog, sort_order, categoryId)
+    await env.NAV_DB.prepare('UPDATE category SET catelog = ?, sort_order = ?, parent_id = ? WHERE id = ?')
+      .bind(catelog, sort_order, parentId, categoryId)
       .run();
       
     return jsonResponse({

@@ -52,10 +52,10 @@
 .custom-dropdown-item {
   padding: 10px 15px;
   cursor: pointer;
-  position: relative; /* For sub-menu positioning */
+  position: relative; 
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  color: #333;
 }
 
 .custom-dropdown-item:hover {
@@ -63,41 +63,8 @@
   color: #007bff;
 }
 
-.custom-dropdown-item.selected {
-  background-color: #e9ecef;
-  font-weight: 600;
-}
-
-.custom-dropdown-arrow {
-  font-size: 10px;
-  color: #adb5bd;
-}
-
-/* Submenu */
-.custom-submenu {
-  display: none;
-  position: absolute;
-  left: 100%;
-  top: 0;
-  min-width: 180px;
-  background-color: #fff;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  z-index: 1001;
-  margin-left: -1px; /* Overlap border */
-}
-
-.custom-dropdown-item:hover > .custom-submenu {
-  display: block;
-}
-
-/* Ensure submenu hover works */
-.custom-submenu::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -10px; /* Bridge the gap */
-  width: 10px;
-  height: 100%;
+.custom-dropdown-item span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

@@ -231,44 +231,7 @@
         </div>
       </div>
 
-      <!-- 子分类管理模态框 -->
-      <div id="subCategoryModal" class="modal" style="display: none">
-        <div class="modal-content" style="max-width: 800px;">
-          <span class="modal-close" id="closeSubCategoryModal">×</span>
-          <h2 id="subCategoryModalTitle">管理子分类</h2>
-          
-          <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-             <h3 class="text-sm font-bold mb-2">添加子分类</h3>
-             <form id="addSubCategoryForm" class="flex flex-wrap gap-2 items-end">
-                <input type="hidden" id="currentParentId">
-                <div class="flex-1 min-w-[200px]">
-                    <input type="text" id="subCategoryName" placeholder="子分类名称" required class="w-full mb-0">
-                </div>
-                <div class="w-[100px]">
-                    <input type="number" id="subCategorySort" placeholder="排序" class="w-full mb-0">
-                </div>
-                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded mb-[1px]">添加</button>
-             </form>
-          </div>
 
-          <div class="table-wrapper">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr>
-                        <th class="p-2 border bg-gray-100">ID</th>
-                        <th class="p-2 border bg-gray-100">名称</th>
-                        <th class="p-2 border bg-gray-100">排序</th>
-                        <th class="p-2 border bg-gray-100">书签数</th>
-                        <th class="p-2 border bg-gray-100">操作</th>
-                    </tr>
-                </thead>
-                <tbody id="subCategoryList">
-                    <!-- render by js -->
-                </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
 
       <!-- 设置模态框 -->
       <div id="settingsModal" class="modal settings-modal" style="display: none;">
@@ -564,9 +527,18 @@
         <div id="categories" class="tab-content">
           <div class="grid-wrapper">
             <div class="category-toolbar mb-4 flex justify-between items-center">
-              <p class="category-hint text-gray-500 text-sm">
-                拖动卡片可调整排序（无需手动输入排序值）
-              </p>
+              <div class="flex items-center gap-2">
+                 <button id="categoryBackBtn" class="hidden text-sm text-gray-600 hover:text-primary-600 flex items-center bg-white border border-gray-300 px-3 py-1 rounded shadow-sm transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    返回上级
+                 </button>
+                 <span id="categoryBreadcrumb" class="text-gray-700 font-medium ml-2"></span>
+                 <p class="category-hint text-gray-500 text-sm ml-2 hidden sm:block">
+                    拖动卡片可调整排序
+                 </p>
+              </div>
               <button id="refreshCategories" type="button" class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-3 py-1 rounded transition-colors text-sm">刷新</button>
             </div>
             <div id="categoryGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
@@ -580,10 +552,10 @@
               <button id="categoryNextPage" disabled class="px-4 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">下一页</button>
               
               <select id="categoryPageSizeSelect" class="ml-2 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 bg-white">
-                  <option value="20" selected>20条/页</option>
+                  <option value="20">20条/页</option>
                   <option value="50">50条/页</option>
                   <option value="100">100条/页</option>
-                  <option value="10000">全部</option>
+                  <option value="10000" selected>全部</option>
               </select>
             </div>
           </div>

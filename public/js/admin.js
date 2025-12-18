@@ -125,7 +125,7 @@ let pendingTotalItems = 0;
 let allPendingConfigs = [];
 
 let categoryCurrentPage = 1;
-let categoryPageSize = 20;
+let categoryPageSize = 10000;
 let categoryTotalItems = 0;
 let categoriesData = [];
 
@@ -226,7 +226,7 @@ function buildCategoryTree(categories) {
     return roots;
 }
 
-// Helper: Create Cascading Dropdown
+// Helper: Create Cascading Dropdown (Flat with Indentation)
 function createCascadingDropdown(containerId, inputId, categoriesTree, initialValue = null, excludeId = null) {
     const container = document.getElementById(containerId);
     const input = document.getElementById(inputId);
@@ -268,51 +268,11 @@ function createCascadingDropdown(containerId, inputId, categoriesTree, initialVa
     const menu = document.createElement('div');
     menu.className = 'custom-dropdown-menu';
     
-    // Recursive render
-    const renderItems = (nodes, parentEl) => {
-        nodes.forEach(node => {
-            if (excludeId && node.id == excludeId) return; // Prevent selecting self/children (if needed logic extended)
-            
-            const item = document.createElement('div');
-            item.className = 'custom-dropdown-item';
-            
-            const hasChildren = node.children && node.children.length > 0;
-            
-            const textSpan = document.createElement('span');
-            textSpan.textContent = node.catelog;
-            item.appendChild(textSpan);
-            
-            if (hasChildren) {
-                const arrow = document.createElement('span');
-                arrow.className = 'custom-dropdown-arrow';
-                arrow.textContent = '▶';
-                item.appendChild(arrow);
-                
-                const submenu = document.createElement('div');
-                submenu.className = 'custom-submenu';
-                renderItems(node.children, submenu);
-                item.appendChild(submenu);
-            }
-            
-            // Click Event (Select)
-            item.addEventListener('click', (e) => {
-                e.stopPropagation(); // Stop bubbling to prevent immediate close if we had logic on menu
-                input.value = node.id;
-                trigger.textContent = node.catelog;
-                menu.classList.remove('show');
-                // Trigger change event manually if needed
-                input.dispatchEvent(new Event('change'));
-            });
-            
-            parentEl.appendChild(item);
-        });
-    };
-    
     // Optional "None" option for parent selection
     if (inputId.toLowerCase().includes('parent')) {
         const rootItem = document.createElement('div');
         rootItem.className = 'custom-dropdown-item';
-        rootItem.innerHTML = '<span>无 (顶级分类)</span>';
+        rootItem.innerHTML = '<span class="font-medium text-gray-900">无 (顶级分类)</span>';
         rootItem.addEventListener('click', (e) => {
             e.stopPropagation();
             input.value = '0';
@@ -321,8 +281,46 @@ function createCascadingDropdown(containerId, inputId, categoriesTree, initialVa
         });
         menu.appendChild(rootItem);
     }
+
+    // Flatten logic
+    const renderItems = (nodes, depth = 0) => {
+        nodes.forEach(node => {
+            if (excludeId && node.id == excludeId) return; 
+            
+            const item = document.createElement('div');
+            item.className = 'custom-dropdown-item';
+            
+            // Indentation using padding/margin or invisible chars
+            // Using padding-left based on depth
+            item.style.paddingLeft = `${15 + depth * 20}px`;
+            
+            let prefix = '';
+            if (depth > 0) {
+                prefix = '└─ ';
+            }
+
+            const textSpan = document.createElement('span');
+            textSpan.textContent = prefix + node.catelog;
+            item.appendChild(textSpan);
+            
+            // Click Event (Select)
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                input.value = node.id;
+                trigger.textContent = node.catelog;
+                menu.classList.remove('show');
+                input.dispatchEvent(new Event('change'));
+            });
+            
+            menu.appendChild(item);
+            
+            if (node.children && node.children.length > 0) {
+                renderItems(node.children, depth + 1);
+            }
+        });
+    };
     
-    renderItems(categoriesTree, menu);
+    renderItems(categoriesTree);
     container.appendChild(menu);
     
     // Toggle Menu
@@ -570,6 +568,7 @@ function saveSortOrder() {
 }
 
 let categoriesTree = [];
+let currentViewParentId = null;
 
 function fetchCategories(page = categoryCurrentPage) {
   if (!categoryGrid) {
@@ -589,25 +588,7 @@ function fetchCategories(page = categoryCurrentPage) {
         // Build Tree
         categoriesTree = buildCategoryTree(categoriesData);
         
-        // Only render top-level categories (roots)
-        // Since pagination is on the backend, this might be tricky if backend paginates flat list.
-        // If backend paginates flat list, we might only get some children without parents or vice versa.
-        // For "Category List" management, it's better to fetch ALL categories to build tree properly client-side, 
-        // OR backend should support tree fetching.
-        // Given current backend implementation (flat list with pagination), showing "Top Level Only" with pagination is hard if we don't fetch all.
-        // BUT, the user requested "Category list only shows top-level". 
-        // If we stick to pagination, we might see empty pages if a page only contains children.
-        // HACK: For Admin Category Management, usually fetching all (pageSize=1000) is acceptable as categories are rarely > 1000.
-        // Let's modify the fetch to get ALL categories for the tree construction if we want to ensure integrity, 
-        // but to respect existing pagination logic, let's filter what we have.
-        
-        // BETTER APPROACH for this session: Filter `categoriesData` for `!parent_id`.
-        // If this result is empty (because page is full of children), it looks weird.
-        // Ideally, we should fetch `pageSize=1000` for categories tab.
-        
-        const rootCategories = categoriesTree; // buildCategoryTree returns roots
-        
-        renderCategoryCards(rootCategories);
+        renderCategoryView(currentViewParentId);
         updateCategoryPaginationButtons();
       } else {
         showMessage(data.message || '加载分类失败', 'error');
@@ -619,11 +600,66 @@ function fetchCategories(page = categoryCurrentPage) {
     });
 }
 
+function renderCategoryView(parentId) {
+    currentViewParentId = parentId;
+    updateCategoryBreadcrumb(parentId);
+    
+    let nodesToRender = [];
+    if (!parentId || parentId == '0') {
+        nodesToRender = categoriesTree;
+    } else {
+        // Find the node in the tree
+        const findNode = (nodes, id) => {
+            for(const node of nodes) {
+                if(node.id == id) return node;
+                if(node.children) {
+                    const found = findNode(node.children, id);
+                    if(found) return found;
+                }
+            }
+            return null;
+        };
+        const parentNode = findNode(categoriesTree, parentId);
+        if(parentNode && parentNode.children) {
+            nodesToRender = parentNode.children;
+        } else {
+            nodesToRender = [];
+        }
+    }
+    renderCategoryCards(nodesToRender);
+}
+
+function updateCategoryBreadcrumb(parentId) {
+    const backBtn = document.getElementById('categoryBackBtn');
+    const breadcrumb = document.getElementById('categoryBreadcrumb');
+    
+    if(!parentId || parentId == '0') {
+        if(backBtn) backBtn.classList.add('hidden');
+        if(breadcrumb) breadcrumb.textContent = '顶级分类';
+    } else {
+        if(backBtn) backBtn.classList.remove('hidden');
+        const cat = categoriesData.find(c => c.id == parentId);
+        if(breadcrumb) breadcrumb.textContent = cat ? cat.catelog : '未知分类';
+        
+        if (backBtn) {
+            // Unbind old events by replacing the element or just re-assigning onclick
+            backBtn.onclick = () => {
+                 const currentCat = categoriesData.find(c => c.id == parentId);
+                 if(currentCat && currentCat.parent_id && currentCat.parent_id != '0') {
+                     renderCategoryView(currentCat.parent_id);
+                 } else {
+                     renderCategoryView(null);
+                 }
+            };
+        }
+    }
+}
+
 function renderCategoryCards(categories) {
   if (!categoryGrid) return;
   categoryGrid.innerHTML = '';
   if (!categories || categories.length === 0) {
-    categoryGrid.innerHTML = '<div class="col-span-full text-center text-gray-500 py-10">暂无顶级分类数据</div>';
+    categoryGrid.innerHTML = '<div class="col-span-full text-center text-gray-500 py-10">没有子分类数据</div>';
     return;
   }
 
@@ -632,7 +668,6 @@ function renderCategoryCards(categories) {
     const safeName = escapeHTML(item.catelog);
     const siteCount = item.site_count || 0;
     const sortValue = item.sort_order === null || item.sort_order === 9999 ? '默认' : item.sort_order;
-    // Calculate total sub-items (optional)
     const subCount = item.children ? item.children.length : 0;
 
     card.className = 'site-card group bg-white border border-primary-100/60 rounded-xl shadow-sm overflow-hidden relative cursor-move';
@@ -707,7 +742,6 @@ function bindCategoryEvents() {
         const sortOrder = category.sort_order;
         document.getElementById('editCategorySortOrder').value = (sortOrder === null || sortOrder === 9999) ? '' : sortOrder;
         
-        // Use custom dropdown
         createCascadingDropdown('editCategoryParentWrapper', 'editCategoryParent', categoriesTree, category.parent_id || '0', category.id);
 
         document.getElementById('editCategoryModal').style.display = 'block';
@@ -735,112 +769,9 @@ function bindCategoryEvents() {
       btn.addEventListener('click', function (e) {
           e.stopPropagation();
           const categoryId = this.getAttribute('data-category-id');
-          viewSubCategories(categoryId);
+          renderCategoryView(categoryId);
       });
   });
-}
-
-// Sub-category Management Logic
-let currentManagingParentId = null;
-
-function viewSubCategories(parentId) {
-    currentManagingParentId = parentId;
-    const parentCat = categoriesData.find(c => c.id == parentId);
-    if (!parentCat) return;
-    
-    document.getElementById('subCategoryModalTitle').textContent = `管理 "${parentCat.catelog}" 的子分类`;
-    document.getElementById('currentParentId').value = parentId;
-    
-    // Find children from tree or flat list? Flat list is easier to filter
-    const subCategories = categoriesData.filter(c => c.parent_id == parentId).sort((a,b) => (a.sort_order ?? 9999) - (b.sort_order ?? 9999));
-    
-    renderSubCategoryList(subCategories);
-    document.getElementById('subCategoryModal').style.display = 'block';
-}
-
-function renderSubCategoryList(subs) {
-    const tbody = document.getElementById('subCategoryList');
-    tbody.innerHTML = '';
-    
-    if (subs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-gray-500">暂无子分类</td></tr>';
-        return;
-    }
-    
-    subs.forEach(sub => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td class="p-2 border">${sub.id}</td>
-            <td class="p-2 border">${escapeHTML(sub.catelog)}</td>
-            <td class="p-2 border">${sub.sort_order ?? '默认'}</td>
-            <td class="p-2 border">${sub.site_count || 0}</td>
-            <td class="p-2 border">
-                <button class="bg-red-100 text-red-600 hover:bg-red-200 px-2 py-1 rounded text-xs del-sub-btn" data-id="${sub.id}" ${sub.site_count > 0 ? 'disabled title="包含书签无法删除"' : ''}>删除</button>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
-    
-    tbody.querySelectorAll('.del-sub-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            if(e.target.disabled) return;
-            if(confirm('确定删除子分类吗?')) {
-                deleteCategory(e.target.dataset.id, true);
-            }
-        });
-    });
-}
-
-// Add Sub Category Form
-const addSubCategoryForm = document.getElementById('addSubCategoryForm');
-if (addSubCategoryForm) {
-    addSubCategoryForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const parentId = document.getElementById('currentParentId').value;
-        const name = document.getElementById('subCategoryName').value.trim();
-        const sort = document.getElementById('subCategorySort').value;
-        
-        if (!name) return;
-        
-        const payload = {
-            catelog: name,
-            parent_id: parentId
-        };
-        if (sort) payload.sort_order = parseInt(sort);
-        
-        fetch('/api/categories/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        }).then(res => res.json()).then(data => {
-            if (data.code === 201) {
-                showMessage('子分类添加成功', 'success');
-                document.getElementById('subCategoryName').value = '';
-                document.getElementById('subCategorySort').value = '';
-                // Refresh data and view
-                refreshCategoriesAndKeepView(parentId);
-            } else {
-                showMessage(data.message, 'error');
-            }
-        });
-    });
-}
-
-function refreshCategoriesAndKeepView(parentId) {
-    // We need to fetch all categories again to update state
-    fetch(`/api/categories?page=${categoryCurrentPage}&pageSize=${categoryPageSize}`)
-    .then(res => res.json())
-    .then(data => {
-        if (data.code === 200) {
-            categoriesData = data.data || [];
-            categoriesTree = buildCategoryTree(categoriesData);
-            renderCategoryCards(categoriesTree);
-            // Re-open modal view
-            if (document.getElementById('subCategoryModal').style.display === 'block') {
-                viewSubCategories(parentId);
-            }
-        }
-    });
 }
 
 function deleteCategory(id, isSub = false) {
@@ -851,11 +782,8 @@ function deleteCategory(id, isSub = false) {
     }).then(res => res.json()).then(data => {
         if (data.code === 200) {
             showMessage('删除成功', 'success');
-            if (isSub && currentManagingParentId) {
-                refreshCategoriesAndKeepView(currentManagingParentId);
-            } else {
-                fetchCategories();
-            }
+            // Refresh
+            fetchCategories();
         } else {
             showMessage(data.message || '删除失败', 'error');
         }
@@ -1882,3 +1810,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// Init Data
+fetchConfigs();
