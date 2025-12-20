@@ -1769,8 +1769,6 @@ const initSettings = () => {
   const hideDescSwitch = document.getElementById('hideDescSwitch');
   const hideLinksSwitch = document.getElementById('hideLinksSwitch');
   const hideCategorySwitch = document.getElementById('hideCategorySwitch');
-  const hideTitleSwitch = document.getElementById('hideTitleSwitch');
-  const hideSubtitleSwitch = document.getElementById('hideSubtitleSwitch');
   const frostedGlassSwitch = document.getElementById('frostedGlassSwitch');
   const frostedGlassIntensityRange = document.getElementById('frostedGlassIntensity');
   const frostedGlassIntensityValue = document.getElementById('frostedGlassIntensityValue');
@@ -1786,6 +1784,29 @@ const initSettings = () => {
   const wpSourceBingBtn = document.getElementById('wpSourceBing');
   const wpSource360Btn = document.getElementById('wpSource360');
   const category360Select = document.getElementById('category360');
+
+  // Home Settings Inputs
+  const hideTitleSwitch = document.getElementById('hideTitleSwitch');
+  const homeTitleSizeInput = document.getElementById('homeTitleSize');
+  const homeTitleColorInput = document.getElementById('homeTitleColor');
+  const homeTitleColorPicker = document.getElementById('homeTitleColorPicker');
+
+  const hideSubtitleSwitch = document.getElementById('hideSubtitleSwitch');
+  const homeSubtitleSizeInput = document.getElementById('homeSubtitleSize');
+  const homeSubtitleColorInput = document.getElementById('homeSubtitleColor');
+  const homeSubtitleColorPicker = document.getElementById('homeSubtitleColorPicker');
+
+  const hideStatsSwitch = document.getElementById('hideStatsSwitch');
+  const homeStatsSizeInput = document.getElementById('homeStatsSize');
+  const homeStatsColorInput = document.getElementById('homeStatsColor');
+  const homeStatsColorPicker = document.getElementById('homeStatsColorPicker');
+
+  const hideHitokotoSwitch = document.getElementById('hideHitokotoSwitch');
+  const homeHitokotoSizeInput = document.getElementById('homeHitokotoSize');
+  const homeHitokotoColorInput = document.getElementById('homeHitokotoColor');
+  const homeHitokotoColorPicker = document.getElementById('homeHitokotoColorPicker');
+
+  const searchEngineSwitch = document.getElementById('searchEngineSwitch');
 
   // AI Provider Elements
   const providerSelector = document.getElementById('providerSelector');
@@ -1815,7 +1836,18 @@ const initSettings = () => {
     layout_hide_links: false,
     layout_hide_category: false,
     layout_hide_title: false,
+    home_title_size: '',
+    home_title_color: '',
     layout_hide_subtitle: false,
+    home_subtitle_size: '',
+    home_subtitle_color: '',
+    home_hide_stats: false,
+    home_stats_size: '',
+    home_stats_color: '',
+    home_hide_hitokoto: false,
+    home_hitokoto_size: '',
+    home_hitokoto_color: '',
+    home_search_engine_enabled: false,
     layout_enable_frosted_glass: false,
     layout_frosted_glass_intensity: '15',
     layout_grid_cols: '4',
@@ -1848,6 +1880,33 @@ const initSettings = () => {
     }
   }
   fetchPublicConfig();
+
+  // Color Picker Sync Helper
+  function setupColorPicker(textInput, pickerInput) {
+    if (!textInput || !pickerInput) return;
+    
+    // Init picker from text if valid hex
+    if (/^#[0-9A-F]{6}$/i.test(textInput.value)) {
+        pickerInput.value = textInput.value;
+    }
+
+    pickerInput.addEventListener('input', () => {
+        textInput.value = pickerInput.value;
+    });
+
+    textInput.addEventListener('input', () => {
+        const val = textInput.value;
+        if (/^#[0-9A-F]{6}$/i.test(val)) {
+            pickerInput.value = val;
+        }
+    });
+  }
+
+  setupColorPicker(homeTitleColorInput, homeTitleColorPicker);
+  setupColorPicker(homeSubtitleColorInput, homeSubtitleColorPicker);
+  setupColorPicker(homeStatsColorInput, homeStatsColorPicker);
+  setupColorPicker(homeHitokotoColorInput, homeHitokotoColorPicker);
+
 
   // --- Online Wallpaper Logic ---
 
@@ -2181,8 +2240,25 @@ const initSettings = () => {
     currentSettings.layout_hide_desc = hideDescSwitch.checked;
     currentSettings.layout_hide_links = hideLinksSwitch.checked;
     currentSettings.layout_hide_category = hideCategorySwitch.checked;
+    
     currentSettings.layout_hide_title = hideTitleSwitch.checked;
+    currentSettings.home_title_size = homeTitleSizeInput.value.trim();
+    currentSettings.home_title_color = homeTitleColorInput.value.trim();
+
     currentSettings.layout_hide_subtitle = hideSubtitleSwitch.checked;
+    currentSettings.home_subtitle_size = homeSubtitleSizeInput.value.trim();
+    currentSettings.home_subtitle_color = homeSubtitleColorInput.value.trim();
+
+    currentSettings.home_hide_stats = hideStatsSwitch.checked;
+    currentSettings.home_stats_size = homeStatsSizeInput.value.trim();
+    currentSettings.home_stats_color = homeStatsColorInput.value.trim();
+
+    currentSettings.home_hide_hitokoto = hideHitokotoSwitch.checked;
+    currentSettings.home_hitokoto_size = homeHitokotoSizeInput.value.trim();
+    currentSettings.home_hitokoto_color = homeHitokotoColorInput.value.trim();
+
+    currentSettings.home_search_engine_enabled = searchEngineSwitch.checked;
+
     currentSettings.layout_custom_wallpaper = customWallpaperInput.value.trim();
     currentSettings.layout_random_wallpaper = randomWallpaperSwitch.checked;
     currentSettings.layout_enable_bg_blur = bgBlurSwitch.checked;
@@ -2277,7 +2353,23 @@ const initSettings = () => {
             if (serverSettings.layout_hide_links !== undefined) currentSettings.layout_hide_links = serverSettings.layout_hide_links === 'true';
             if (serverSettings.layout_hide_category !== undefined) currentSettings.layout_hide_category = serverSettings.layout_hide_category === 'true';
             if (serverSettings.layout_hide_title !== undefined) currentSettings.layout_hide_title = serverSettings.layout_hide_title === 'true';
+            if (serverSettings.home_title_size) currentSettings.home_title_size = serverSettings.home_title_size;
+            if (serverSettings.home_title_color) currentSettings.home_title_color = serverSettings.home_title_color;
+
             if (serverSettings.layout_hide_subtitle !== undefined) currentSettings.layout_hide_subtitle = serverSettings.layout_hide_subtitle === 'true';
+            if (serverSettings.home_subtitle_size) currentSettings.home_subtitle_size = serverSettings.home_subtitle_size;
+            if (serverSettings.home_subtitle_color) currentSettings.home_subtitle_color = serverSettings.home_subtitle_color;
+
+            if (serverSettings.home_hide_stats !== undefined) currentSettings.home_hide_stats = serverSettings.home_hide_stats === 'true';
+            if (serverSettings.home_stats_size) currentSettings.home_stats_size = serverSettings.home_stats_size;
+            if (serverSettings.home_stats_color) currentSettings.home_stats_color = serverSettings.home_stats_color;
+
+            if (serverSettings.home_hide_hitokoto !== undefined) currentSettings.home_hide_hitokoto = serverSettings.home_hide_hitokoto === 'true';
+            if (serverSettings.home_hitokoto_size) currentSettings.home_hitokoto_size = serverSettings.home_hitokoto_size;
+            if (serverSettings.home_hitokoto_color) currentSettings.home_hitokoto_color = serverSettings.home_hitokoto_color;
+
+            if (serverSettings.home_search_engine_enabled !== undefined) currentSettings.home_search_engine_enabled = serverSettings.home_search_engine_enabled === 'true';
+
             if (serverSettings.layout_enable_frosted_glass !== undefined) currentSettings.layout_enable_frosted_glass = serverSettings.layout_enable_frosted_glass === 'true';
             if (serverSettings.layout_frosted_glass_intensity) currentSettings.layout_frosted_glass_intensity = serverSettings.layout_frosted_glass_intensity;
             if (serverSettings.layout_grid_cols) currentSettings.layout_grid_cols = serverSettings.layout_grid_cols;
@@ -2385,8 +2477,45 @@ const initSettings = () => {
     if (hideDescSwitch) hideDescSwitch.checked = !!currentSettings.layout_hide_desc;
     if (hideLinksSwitch) hideLinksSwitch.checked = !!currentSettings.layout_hide_links;
     if (hideCategorySwitch) hideCategorySwitch.checked = !!currentSettings.layout_hide_category;
+    
     if (hideTitleSwitch) hideTitleSwitch.checked = !!currentSettings.layout_hide_title;
+    if (homeTitleSizeInput) homeTitleSizeInput.value = currentSettings.home_title_size || '';
+    if (homeTitleColorInput) {
+        homeTitleColorInput.value = currentSettings.home_title_color || '';
+        if (homeTitleColorPicker && /^#[0-9A-F]{6}$/i.test(currentSettings.home_title_color)) {
+            homeTitleColorPicker.value = currentSettings.home_title_color;
+        }
+    }
+
     if (hideSubtitleSwitch) hideSubtitleSwitch.checked = !!currentSettings.layout_hide_subtitle;
+    if (homeSubtitleSizeInput) homeSubtitleSizeInput.value = currentSettings.home_subtitle_size || '';
+    if (homeSubtitleColorInput) {
+        homeSubtitleColorInput.value = currentSettings.home_subtitle_color || '';
+         if (homeSubtitleColorPicker && /^#[0-9A-F]{6}$/i.test(currentSettings.home_subtitle_color)) {
+            homeSubtitleColorPicker.value = currentSettings.home_subtitle_color;
+        }
+    }
+
+    if (hideStatsSwitch) hideStatsSwitch.checked = !!currentSettings.home_hide_stats;
+    if (homeStatsSizeInput) homeStatsSizeInput.value = currentSettings.home_stats_size || '';
+    if (homeStatsColorInput) {
+        homeStatsColorInput.value = currentSettings.home_stats_color || '';
+        if (homeStatsColorPicker && /^#[0-9A-F]{6}$/i.test(currentSettings.home_stats_color)) {
+            homeStatsColorPicker.value = currentSettings.home_stats_color;
+        }
+    }
+
+    if (hideHitokotoSwitch) hideHitokotoSwitch.checked = !!currentSettings.home_hide_hitokoto;
+    if (homeHitokotoSizeInput) homeHitokotoSizeInput.value = currentSettings.home_hitokoto_size || '';
+    if (homeHitokotoColorInput) {
+        homeHitokotoColorInput.value = currentSettings.home_hitokoto_color || '';
+        if (homeHitokotoColorPicker && /^#[0-9A-F]{6}$/i.test(currentSettings.home_hitokoto_color)) {
+            homeHitokotoColorPicker.value = currentSettings.home_hitokoto_color;
+        }
+    }
+
+    if (searchEngineSwitch) searchEngineSwitch.checked = !!currentSettings.home_search_engine_enabled;
+
     if (frostedGlassSwitch) frostedGlassSwitch.checked = !!currentSettings.layout_enable_frosted_glass;
     if (frostedGlassIntensityRange) frostedGlassIntensityRange.value = currentSettings.layout_frosted_glass_intensity || '15';
     if (frostedGlassIntensityValue) frostedGlassIntensityValue.textContent = currentSettings.layout_frosted_glass_intensity || '15';

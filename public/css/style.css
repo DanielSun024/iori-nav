@@ -483,27 +483,47 @@
 /* 搜索引擎选项样式 */
 /* ========================================= */
 .search-engine-option {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
     cursor: pointer;
     transition: all 0.2s ease;
-    opacity: 0.6;
-    font-weight: 400;
+    opacity: 0.7;
+    font-weight: 500;
     color: rgba(255, 255, 255, 0.9); /* 默认白色 */
 }
 
 .search-engine-option:hover {
-    opacity: 0.8;
+    background-color: rgba(255, 255, 255, 0.1);
+    opacity: 1;
 }
 
 .search-engine-option.active {
     opacity: 1;
     font-weight: 700;
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 /* 自定义壁纸模式下的颜色 */
 .custom-wallpaper .search-engine-option {
-    color: #374151; /* gray-700 */
+    color: #1f2937; /* gray-800 */
+    background-color: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(4px);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    opacity: 0.9;
+}
+
+.custom-wallpaper .search-engine-option:hover {
+    background-color: rgba(255, 255, 255, 0.8);
+    opacity: 1;
 }
 
 .custom-wallpaper .search-engine-option.active {
     color: #2563eb; /* primary-600 */
+    background-color: rgba(255, 255, 255, 0.95);
+    font-weight: 600;
+    opacity: 1;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }

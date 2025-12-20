@@ -160,6 +160,7 @@ export async function onRequest(context) {
   let homeHideHitokoto = false;
   let homeHitokotoSize = '';
   let homeHitokotoColor = '';
+  let homeSearchEngineEnabled = false;
   let layoutGridCols = '4';
   let layoutCustomWallpaper = '';
   let layoutMenuLayout = 'horizontal';
@@ -179,6 +180,7 @@ export async function onRequest(context) {
         'layout_hide_subtitle', 'home_subtitle_size', 'home_subtitle_color',
         'home_hide_stats', 'home_stats_size', 'home_stats_color',
         'home_hide_hitokoto', 'home_hitokoto_size', 'home_hitokoto_color',
+        'home_search_engine_enabled',
         'layout_grid_cols', 'layout_custom_wallpaper', 'layout_menu_layout',
         'layout_random_wallpaper', 'bing_country',
         'layout_enable_frosted_glass', 'layout_frosted_glass_intensity',
@@ -209,6 +211,8 @@ export async function onRequest(context) {
         if (row.key === 'home_hide_hitokoto') homeHideHitokoto = row.value === 'true';
         if (row.key === 'home_hitokoto_size') homeHitokotoSize = row.value;
         if (row.key === 'home_hitokoto_color') homeHitokotoColor = row.value;
+
+        if (row.key === 'home_search_engine_enabled') homeSearchEngineEnabled = row.value === 'true';
 
         if (row.key === 'layout_grid_cols') layoutGridCols = row.value;
         if (row.key === 'layout_custom_wallpaper') layoutCustomWallpaper = row.value;
@@ -494,7 +498,7 @@ export async function onRequest(context) {
   const horizontalSubtitleHtml = layoutHideSubtitle ? '' : `<p class="${subTextColorClass} opacity-90 text-sm md:text-base" ${subtitleStyle}>{{SITE_DESCRIPTION}}</p>`;
 
   // 搜索引擎选项 HTML
-  const searchEngineOptions = `
+  const searchEngineOptions = homeSearchEngineEnabled ? `
     <div class="flex justify-center items-center space-x-5 mb-4 text-sm select-none" id="searchEngineWrapper">
         <label class="search-engine-option active" data-engine="local">
             <span>站内</span>
@@ -509,7 +513,7 @@ export async function onRequest(context) {
             <span>Bing</span>
         </label>
     </div>
-  `;
+  ` : '';
 
   const verticalHeaderContent = `
       <div class="max-w-4xl mx-auto text-center relative z-10 ${themeClass} py-8">
