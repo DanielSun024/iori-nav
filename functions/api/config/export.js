@@ -8,13 +8,6 @@ export async function onRequestGet(context) {
     return errorResponse('Unauthorized', 401);
   }
 
-export async function onRequestGet(context) {
-  const { request, env } = context;
-  
-  if (!(await isAdminAuthenticated(request, env))) {
-    return errorResponse('Unauthorized', 401);
-  }
-
   const url = new URL(request.url);
   const includePrivate = url.searchParams.get('include_private') === 'true';
 
@@ -25,10 +18,6 @@ export async function onRequestGet(context) {
     if (!includePrivate) {
         categoryQuery += ' WHERE is_private = 0';
         // Site is private if itself is private OR its category is private.
-        // However, if we filter categories, the sites belonging to private categories might become orphans if we don't filter them too.
-        // Assuming strict filtering:
-        // Filter out sites that are private explicitly.
-        // AND filter out sites whose category is private (though usually site.is_private should be 1 if category is 1, but double check is safe).
         // Since we are doing a simple export, let's just filter by sites.is_private = 0.
         // Because previous logic ensures site.is_private = 1 if category is private.
         sitesQuery += ' WHERE is_private = 0';
