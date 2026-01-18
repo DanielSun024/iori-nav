@@ -610,7 +610,7 @@ export async function onRequest(context) {
 
           <a href="?catalog=all" class="nav-btn ${allLinkClass} ${allLinkActiveMarker}">
 
-              全部
+          <!-- 留空，不显示任何文本 -->
 
           </a>
 
