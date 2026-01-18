@@ -1074,7 +1074,6 @@ export async function onRequest(context) {
           var inputs = document.querySelectorAll('.search-input-target');
           var ph = '搜索书签...';
           if(saved === 'google') ph = 'Google 搜索...';
-          if(saved === 'baidu') ph = '百度搜索...';
           if(saved === 'bing') ph = 'Bing 搜索...';
           inputs.forEach(function(i){ i.placeholder = ph; });
         }
