@@ -604,19 +604,6 @@ export async function onRequest(context) {
 
     
 
-    const horizontalAllLink = `
-
-        <div class="menu-item-wrapper relative inline-block text-left">
-
-          <a href="?catalog=all" class="nav-btn ${allLinkClass} ${allLinkActiveMarker}">
-
-              全部
-
-          </a>
-
-        </div>
-
-    `;
 
     
 
