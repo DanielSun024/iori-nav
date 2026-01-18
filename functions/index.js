@@ -1051,9 +1051,6 @@ export async function onRequest(context) {
         <label class="search-engine-option" data-engine="google">
             <span>Google</span>
         </label>
-        <label class="search-engine-option" data-engine="baidu">
-            <span>Baidu</span>
-        </label>
         <label class="search-engine-option" data-engine="bing">
             <span>Bing</span>
         </label>
